@@ -1,0 +1,43 @@
+<form id="resumenForm">
+    <label for="mes">Selecciona el mes:</label>
+    <select name="mes" id="mes">
+        {% for num, nombre in meses.items %}
+            <option value="{{ num }}" {% if num == resumen.mes %} selected {% endif %}>
+                {{ nombre }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label for="anio">Selecciona el año:</label>
+    <input type="number" name="anio" id="anio" value="{{ resumen.anio }}" min="2000" max="2100">
+
+    <button type="submit">Ver Resumen</button>
+</form>
+
+<h2>Resumen Financiero del Mes</h2>
+<p>Mes: <span id="nombreMes">{{ resumen.nombre_mes }}</span></p>
+<p>Año: <span id="anioActual">{{ resumen.anio }}</span></p>
+<p>Ingresos: $<span id="totalIngresos">{{ resumen.total_ingresos }}</span></p>
+<p>Gastos: $<span id="totalGastos">{{ resumen.total_gastos }}</span></p>
+<p>Ahorros: $<span id="totalAhorros">{{ resumen.total_ahorros }}</span></p>
+<p>Presupuesto Restante: $<span id="presupuestoRestante">{{ resumen.presupuesto_restante }}</span></p>
+
+<script>
+document.getElementById("resumenForm").addEventListener("submit", function(event) {
+    event.preventDefault();  // Evita recargar la página
+
+    let mes = document.getElementById("mes").value;
+    let anio = document.getElementById("anio").value;
+    
+    fetch(`{% url 'resumen_financiero' %}?mes=${mes}&anio=${anio}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("nombreMes").innerText = data.nombre_mes;
+            document.getElementById("anioActual").innerText = data.anio;
+            document.getElementById("totalIngresos").innerText = data.total_ingresos;
+            document.getElementById("totalGastos").innerText = data.total_gastos;
+            document.getElementById("totalAhorros").innerText = data.total_ahorros;
+            document.getElementById("presupuestoRestante").innerText = data.presupuesto_restante;
+        });
+});
+</script>
