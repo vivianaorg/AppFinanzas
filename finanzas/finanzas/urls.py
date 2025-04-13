@@ -37,6 +37,7 @@ urlpatterns = [
     path('ingresos-mensuales/', IngresosMensualesView.as_view(), name='ingresos-mensuales'),
     path('gastos-mensuales/', GastosMensualesView.as_view(), name='gastos-mensuales'),
     path('me/', UsuarioActualView.as_view(), name='usuario-actual'),
+    path('categorias/', CategoriaViewSet.as_view({'get': 'list'}), name='categorias'),
 
     # Autenticación con JWT
     path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),

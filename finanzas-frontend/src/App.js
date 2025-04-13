@@ -8,6 +8,7 @@ import ListadoIngresos from "./components/ListadoIngresos";
 import ListadoGastos from "./components/ListadoGastos";
 import PaginaAgregarTransaccion from './components/AgregarTransaccion';
 import NavigationMenu from "./components/NavigationMenu";
+import CategoriasUsuario from "./components/Categoria";
 
 function App() {
     const [user, setUser] = useState(localStorage.getItem("username") || null);
@@ -43,6 +44,7 @@ function App() {
                     <Route path="/listado-ingresos" element={<ListadoIngresos />} />
                     <Route path="/listado-gastos" element={<ListadoGastos />} />
                     <Route path="/agregar" element={<PaginaAgregarTransaccion />} />
+                    <Route path="/categorias" element={<CategoriasUsuario />} />
                 </Routes>
             </BrowserRouter>
         </div>

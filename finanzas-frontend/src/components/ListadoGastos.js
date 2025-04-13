@@ -11,8 +11,11 @@ const ListadoGastos = () => {
     const [totalGastos, setTotalGastos] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    //editar
+    const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
+    const [mostrarModal, setMostrarModal] = useState(false);
+    const [categorias, setCategorias] = useState([]);
 
-    // Configurar interceptores de Axios al montar el componente
     useEffect(() => {
         setupAxiosInterceptors();
     }, []);
@@ -28,10 +31,10 @@ const ListadoGastos = () => {
     const obtenerGastosMensuales = async () => {
         setLoading(true);
         setError(null);
-        
+
         try {
             const token = getToken();
-            
+
             if (!token) {
                 setError("No hay sesión activa. Por favor inicie sesión nuevamente.");
                 setLoading(false);
@@ -40,16 +43,16 @@ const ListadoGastos = () => {
 
             // Obtener gastos del mes seleccionado
             const response = await axios.get(
-                `http://127.0.0.1:8000/gastos-mensuales/`, 
-                { 
+                `http://127.0.0.1:8000/gastos-mensuales/`,
+                {
                     headers: { Authorization: `Bearer ${token}` },
-                    params: { 
+                    params: {
                         mes: mes,
-                        anio: anio 
+                        anio: anio
                     }
                 }
             );
-            
+
             // Procesar respuesta
             if (response.data && Array.isArray(response.data.gastos)) {
                 setGastos(response.data.gastos);
@@ -61,10 +64,10 @@ const ListadoGastos = () => {
             }
         } catch (error) {
             console.error("Error al obtener gastos:", error);
-            
+
             if (error.response) {
                 console.log("Respuesta del servidor:", error.response.data);
-                
+
                 if (error.response.status === 400) {
                     setError(`Error de solicitud: ${JSON.stringify(error.response.data)}`);
                 } else if (error.response.status === 401) {
@@ -81,13 +84,26 @@ const ListadoGastos = () => {
             setLoading(false);
         }
     };
+    const obtenerCategorias = async () => {
+        try {
+            const token = getToken();
+            const res = await axios.get('http://127.0.0.1:8000/categorias/', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setCategorias(res.data);
+        } catch (err) {
+            console.error("Error al obtener categorías:", err);
+        }
+    };
+
+    obtenerCategorias();
 
     const formatearFecha = (fechaString) => {
         const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString('es-ES', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric' 
+        return fecha.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
         });
     };
 
@@ -110,18 +126,83 @@ const ListadoGastos = () => {
     };
 
     const nombresMeses = [
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
 
     const formatearCantidad = (cantidad) => {
-        return new Intl.NumberFormat('es-ES', { 
-            style: 'currency', 
+        return new Intl.NumberFormat('es-ES', {
+            style: 'currency',
             currency: 'COP',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }).format(cantidad);
     };
+
+    //editar
+    const abrirModal = (ingreso) => {
+        setGastoSeleccionado(ingreso);
+        setMostrarModal(true);
+    };
+
+    const cerrarModal = () => {
+        setMostrarModal(false);
+        setGastoSeleccionado(null);
+    };
+
+    const [editando, setEditando] = useState(false);
+    const [formIngreso, setFormIngreso] = useState({
+        id: null,
+        categoria_nombre: '',
+        cantidad: '',
+    });
+    const iniciarEdicion = () => {
+        setFormIngreso({
+            id: gastoSeleccionado.id,
+            categoria_nombre: gastoSeleccionado.categoria_nombre,
+            cantidad: gastoSeleccionado.cantidad,
+        });
+        setEditando(true);
+    };
+
+    const guardarEdicion = async () => {
+        try {
+            const token = getToken();
+            await axios.patch(
+                `http://127.0.0.1:8000/gastos/${formIngreso.id}/`,
+                {
+                    categoria: formIngreso.categoria_id,
+                    cantidad: formIngreso.cantidad
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+            alert("Gasto actualizado correctamente")
+
+            setEditando(false);
+            setGastoSeleccionado(null);
+            obtenerGastosMensuales();
+        } catch (error) {
+            console.error("Error al guardar cambios:", error);
+            alert("Hubo un error al actualizar el ingreso.");
+        }
+    };
+
+    const handleCategoriaChange = (e) => {
+        const categoriaId = e.target.value;
+        const categoriaNombre = categorias.find(cat => cat.id.toString() === categoriaId)?.nombre || '';
+
+        setFormIngreso({
+            ...formIngreso,
+            categoria_id: categoriaId,
+            categoria_nombre: categoriaNombre
+        });
+    };
+
 
     return (
         <div className="container">
@@ -140,29 +221,29 @@ const ListadoGastos = () => {
                             <Link to="/agregar" className="nav-link text-white py-3 ps-4">Agregar</Link>
                         </div>
                         <div className="mt-auto">
-                            <button 
-                                onClick={() => window.location.href = "/login"} 
+                            <button
+                                onClick={() => window.location.href = "/login"}
                                 className="btn btn-danger w-100 rounded-0 py-3">
                                 Cerrar sesión
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Contenido principal */}
                 <div className="col-md-9 p-0">
                     <div className="container-fluid p-4">
                         {/* Encabezado con navegación de meses */}
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <div className="d-flex align-items-center">
-                                <button 
-                                    className="btn btn-outline-secondary me-2" 
+                                <button
+                                    className="btn btn-outline-secondary me-2"
                                     onClick={handleMesAnterior}>
                                     ←
                                 </button>
-                                <h2 className="mb-0 text-danger">{nombresMeses[mes-1]} {anio}</h2>
-                                <button 
-                                    className="btn btn-outline-secondary ms-2" 
+                                <h2 className="mb-0 text-danger">{nombresMeses[mes - 1]} {anio}</h2>
+                                <button
+                                    className="btn btn-outline-secondary ms-2"
                                     onClick={handleMesSiguiente}>
                                     →
                                 </button>
@@ -175,25 +256,25 @@ const ListadoGastos = () => {
                         </div>
 
                         {error && <div className="alert alert-danger">{error}</div>}
-                        
+
                         {/* Gráfico de gastos por categoría */}
                         <div className="card mb-4">
                             <div className="card-body">
-                                <GraficoGastosMensuales 
-                                    gastos={gastos} 
-                                    totalGastos={totalGastos} 
-                                    loading={loading} 
+                                <GraficoGastosMensuales
+                                    gastos={gastos}
+                                    totalGastos={totalGastos}
+                                    loading={loading}
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="row">
                             {/* Listado de gastos recientes */}
                             <div className="col-md-7">
                                 <div className="card bg-light mb-4">
                                     <div className="card-body">
                                         <h3 className="card-title">Historial de Gastos</h3>
-                                        
+
                                         {loading ? (
                                             <p className="text-center my-4">Cargando gastos...</p>
                                         ) : gastos && gastos.length > 0 ? (
@@ -208,7 +289,14 @@ const ListadoGastos = () => {
                                                     <tbody>
                                                         {gastos.map((gasto, index) => (
                                                             <tr key={index}>
-                                                                <td>{gasto.categoria_nombre || 'Sin categoría'}</td>
+                                                                <td>
+                                                                    <span
+                                                                        onClick={() => abrirModal(gasto)}
+                                                                        style={{ cursor: 'pointer', textDecoration: 'underline', color: '#007bff' }}
+                                                                    >
+                                                                        {gasto.categoria_nombre || 'Sin categoría'}
+                                                                    </span>
+                                                                </td>
                                                                 <td className="text-end">{formatearCantidad(gasto.cantidad)}</td>
                                                             </tr>
                                                         ))}
@@ -220,7 +308,7 @@ const ListadoGastos = () => {
                                         )}
                                     </div>
                                 </div>
-                                
+
                                 {/* Total de gastos */}
                                 <div className="card bg-danger text-white">
                                     <div className="card-body">
@@ -229,7 +317,7 @@ const ListadoGastos = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Distribución de gastos por categoría */}
                             <div className="col-md-5">
                                 <div className="card h-100">
@@ -250,12 +338,12 @@ const ListadoGastos = () => {
                                                                 <span>{formatearCantidad(gasto.cantidad)} ({porcentaje.toFixed(1)}%)</span>
                                                             </div>
                                                             <div className="progress" style={{ height: '10px' }}>
-                                                                <div 
-                                                                    className="progress-bar bg-danger" 
-                                                                    role="progressbar" 
+                                                                <div
+                                                                    className="progress-bar bg-danger"
+                                                                    role="progressbar"
                                                                     style={{ width: `${porcentaje}%` }}
-                                                                    aria-valuenow={porcentaje} 
-                                                                    aria-valuemin="0" 
+                                                                    aria-valuenow={porcentaje}
+                                                                    aria-valuemin="0"
                                                                     aria-valuemax="100">
                                                                 </div>
                                                             </div>
@@ -275,6 +363,80 @@ const ListadoGastos = () => {
                     </div>
                 </div>
             </div>
+
+            {mostrarModal && gastoSeleccionado && (
+                <div
+                    className="modal d-block"
+                    tabIndex="-1"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                >
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Detalles del Gasto</h5>
+                                <button type="button" className="btn-close" onClick={cerrarModal}></button>
+                            </div>
+                            <div className="modal-body">
+                                <p><strong>Categoría:</strong> {gastoSeleccionado.categoria_nombre || 'Sin categoría'}</p>
+                                <p><strong>Fecha:</strong> {formatearFecha(gastoSeleccionado.fecha)}</p>
+                                <p><strong>Valor:</strong> {formatearCantidad(gastoSeleccionado.cantidad)}</p>
+                                {editando ? (
+                                    <div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Categoría</label>
+                                            <select
+                                                className="form-select"
+                                                value={formIngreso.categoria_id}
+                                                onChange={handleCategoriaChange}
+                                            >
+                                                <option value="">Seleccionar categoría</option>
+                                                {categorias.map(categoria => (
+                                                    <option key={categoria.id} value={categoria.id}>
+                                                        {categoria.nombre}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="mb-3">
+                                            <label className="form-label">Cantidad</label>
+                                            <input
+                                                type="number"
+                                                className="form-control"
+                                                value={formIngreso.cantidad}
+                                                onChange={(e) => setFormIngreso({ ...formIngreso, cantidad: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                    </>
+                                )}
+
+                            </div>
+                            <div className="modal-footer">
+                                {editando ? (
+                                    <>
+                                        <button className="btn btn-success" onClick={guardarEdicion}>
+                                            Guardar
+                                        </button>
+                                        <button className="btn btn-secondary" onClick={() => setEditando(false)}>
+                                            Cancelar
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button className="btn btn-primary" onClick={iniciarEdicion}>
+                                        Editar
+                                    </button>
+                                )}
+                                <button className="btn btn-secondary" onClick={() => setGastoSeleccionado(null)}>
+                                    Cerrar
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

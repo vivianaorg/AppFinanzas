@@ -118,7 +118,7 @@ const GraficoGastosMensuales = ({ mes, anio }) => {
   const formatearValor = (valor) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'MXN',
+      currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(valor);
