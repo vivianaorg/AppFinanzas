@@ -30,6 +30,7 @@ class GastoSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 class AhorroSerializer(serializers.ModelSerializer):
+    categoria = serializers.PrimaryKeyRelatedField(queryset=Categoria.objects.all())
     class Meta:
         model = Ahorro
         fields = '__all__'

@@ -3,7 +3,6 @@ import axios from "axios";
 import { getToken } from "./auth";
 
 const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
-  console.log("Componente FormularioAgregarTransaccion montado");
 
   const [usuario, setUsuario] = useState(null);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
@@ -20,7 +19,6 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    console.log("Cargando categorías para:", tipoTransaccion);
     cargarCategorias();
     cargarUsuario();
   }, [tipoTransaccion]);
@@ -38,7 +36,6 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
         params: { tipo: tipoTransaccion.toLowerCase() },
       });
 
-      console.log("Categorías cargadas:", response.data);
       setCategorias(response.data);
       if (response.data.length > 0) {
         setCategoria(response.data[0].id);
@@ -61,11 +58,9 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("Respuesta del servidor al cargar usuario:", response.data);
 
       if (response.data?.id) {
         const usuarioId = Number(response.data.id);
-        console.log("Usuario cargado:", usuarioId);
         setUsuario(usuarioId);
         localStorage.setItem("usuario_id", usuarioId);
       } else {
@@ -139,12 +134,12 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
         categoria_id: parseInt(categoria),
         importe: importeNum, // Enviarlo como string con dos decimales
         comentarios: comentarios || null, // Permitir nulo si está vacío
-        fecha: fecha, 
-        usuario: usuario_id  
+        fecha: fecha,
+        usuario: usuario_id
       };
 
-      console.log("Datos enviados:", transaccionData);
-      console.log("Usuario ID obtenido:", usuario_id);
+      //console.log("Datos enviados:", transaccionData);
+      //console.log("Usuario ID obtenido:", usuario_id);
 
       const response = await axios.post(
         "http://127.0.0.1:8000/transacciones/",
@@ -185,7 +180,9 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
       >
         <option value="Gastos">Gastos</option>
         <option value="Ingresos">Ingresos</option>
+        <option value="Ahorros">Ahorros</option>
       </select>
+
 
       {/* Selección de Fecha */}
       <label className="block">Fecha</label>

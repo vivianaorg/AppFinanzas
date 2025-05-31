@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { isAuthenticated, getToken, refreshToken, setupAxiosInterceptors } from "./auth";
+import MovimientosMensualesView from "./react/MovimientosMensualesView";
+import'./react/MovimientosMensuales.css';
 
 const MovimientosMensuales = ({ user }) => {
     const [mes, setMes] = useState(new Date().getMonth() + 1);
@@ -127,107 +129,21 @@ const MovimientosMensuales = ({ user }) => {
     };
 
     return (
-        <div className="home-container">
-            <h1>Movimientos Mensuales</h1>
-            <div className="mb-3">
-                <Link to="/home" className="btn btn-secondary mr-2">
-                    Volver al Inicio
-                </Link>
-            </div>
-            {error && <div className="alert alert-danger">{error}</div>}
-            
-            <div className="row mb-3">
-                <div className="col-md-6">
-                    <div className="form-group">
-                        <label>
-                            Selecciona el mes:
-                            <select 
-                                className="form-control" 
-                                value={mes} 
-                                onChange={(e) => setMes(Number(e.target.value))}
-                            >
-                                {nombresMeses.map((nombre, index) => (
-                                    <option key={index + 1} value={index + 1}>{nombre}</option>
-                                ))}
-                            </select>
-                        </label>
-                    </div>
-                </div>
-                <div className="col-md-6">
-                    <div className="form-group">
-                        <label>
-                            Selecciona el año:
-                            <input 
-                                className="form-control" 
-                                type="number" 
-                                value={anio} 
-                                onChange={(e) => setAnio(Number(e.target.value))} 
-                                min="2000" 
-                                max="2100" 
-                            />
-                        </label>
-                    </div>
-                </div>
-            </div>
-            
-            <button 
-                onClick={obtenerMovimientosMensuales} 
-                className="btn btn-primary mb-4" 
-                disabled={loading}
-            >
-                {loading ? "Cargando..." : "Actualizar"}
-            </button>
-
-            <div className="card">
-                <div className="card-body">
-                    <h3 className="card-title">Movimientos de {nombresMeses[mes-1]} {anio}</h3>
-                    
-                    {loading ? (
-                        <p>Cargando movimientos...</p>
-                    ) : movimientos && movimientos.length > 0 ? (
-                        <div className="table-responsive">
-                            <table className="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Fecha</th>
-                                        <th>Categoría</th>
-                                        <th>Cantidad</th>
-                                        <th>Tipo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {movimientos.map((movimiento, index) => {
-                                        const badgeInfo = getBadgeInfo(movimiento.tipo);
-                                        return (
-                                            <tr key={index} className={getRowClass(movimiento.tipo)}>
-                                                <td>{formatearFecha(movimiento.fecha)}</td>
-                                                <td>{movimiento.categoria_nombre || 'Sin categoría'}</td>
-                                                <td>${parseFloat(movimiento.cantidad).toFixed(2)}</td>
-                                                <td>
-                                                    <span className={`badge ${badgeInfo.class}`}>
-                                                        {badgeInfo.text}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <p>No hay movimientos para mostrar en este período.</p>
-                    )}
-                </div>
-            </div>
-            
-            <div className="mt-4">
-                <div className="d-flex justify-content-center">
-                    <div className="badge bg-success mx-2 p-2">Ingresos</div>
-                    <div className="badge bg-danger mx-2 p-2">Gastos</div>
-                    <div className="badge bg-info mx-2 p-2">Ahorros</div>
-                </div>
-            </div>
-        </div>
+        <MovimientosMensualesView
+            mes={mes}
+            anio={anio}
+            nombresMeses={nombresMeses}
+            setMes={setMes}
+            setAnio={setAnio}
+            error={error}
+            loading={loading}
+            movimientos={movimientos}
+            formatearFecha={formatearFecha}
+            getRowClass={getRowClass}
+            getBadgeInfo={getBadgeInfo}
+            obtenerMovimientosMensuales={obtenerMovimientosMensuales}
+        />
+        
     );
 };
 

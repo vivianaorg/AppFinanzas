@@ -102,7 +102,7 @@ const GraficoFinanciero = ({ mesActual, anioActual }) => {
         <div className="grafico-financiero mt-4">
             <div className="card">
                 <div className="card-body">
-                    <h3 className="card-title">Evolución Financiera</h3>
+                    <h3 className="card-title">Resumen</h3>
                     {loading && <p>Cargando datos del gráfico...</p>}
                     {error && <div className="alert alert-danger">{error}</div>}
                     

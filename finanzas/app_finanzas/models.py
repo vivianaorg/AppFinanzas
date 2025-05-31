@@ -45,6 +45,19 @@ class Gasto(models.Model):
     def __str__(self):
         return f"Gasto de {self.cantidad} - {self.usuario}"
 
+class Ahorro(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2)
+    categoria = models.ForeignKey(
+        Categoria,
+        on_delete=models.PROTECT,
+        default=Categoria.get_default_id  # Now returns ID instead of the object
+    )
+    fecha = models.DateField()
+    
+    def __str__(self):
+        return f"Ahorro de {self.cantidad} - {self.usuario}"
+    
 class Presupuesto(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     categoria = models.ForeignKey(
@@ -57,19 +70,12 @@ class Presupuesto(models.Model):
     
     def __str__(self):
         return f"Presupuesto {self.categoria} - {self.usuario}"
-
-class Ahorro(models.Model):
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    cantidad = models.DecimalField(max_digits=10, decimal_places=2)
-    fecha = models.DateField()
-    
-    def __str__(self):
-        return f"Ahorro de {self.cantidad} - {self.usuario}"
     
 class Transaccion(models.Model):
     TIPO_CHOICES = [
         ('ingresos', 'Ingresos'),
         ('gastos', 'Gastos'),
+        ('ahorros', 'Ahorros'),
     ]
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='transacciones')
@@ -85,7 +91,6 @@ class Transaccion(models.Model):
 @receiver(post_save, sender=Transaccion)
 def crear_ingreso_o_gasto(sender, instance, created, **kwargs):
     if created:
-        # Si es un ingreso
         if instance.tipo == 'ingresos':
             Ingreso.objects.create(
                 usuario=instance.usuario,
@@ -93,9 +98,15 @@ def crear_ingreso_o_gasto(sender, instance, created, **kwargs):
                 categoria=instance.categoria,
                 fecha=instance.fecha
             )
-        # Si es un gasto
         elif instance.tipo == 'gastos':
             Gasto.objects.create(
+                usuario=instance.usuario,
+                cantidad=instance.importe,
+                categoria=instance.categoria,
+                fecha=instance.fecha
+            )
+        elif instance.tipo == 'ahorros':
+            Ahorro.objects.create(
                 usuario=instance.usuario,
                 cantidad=instance.importe,
                 categoria=instance.categoria,

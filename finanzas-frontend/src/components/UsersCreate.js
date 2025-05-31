@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import UsersCreateForm from "./react/UsersCreateForm";
 
 const UsersCreate = () => {
     const [username, setUsername] = useState("");
@@ -39,44 +40,19 @@ const UsersCreate = () => {
     };
 
     return (
-        <div className="register-container">
-            <div className="register-form">
-                <h2>Crear Cuenta</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-3">
-                        <label className="form-label">Username:</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                    </div>
-                    <div className="mb-3">
-                        <label className="form-label">Email:</label>
-                        <input
-                            type="email"
-                            className="form-control"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-                    <div className="mb-3">
-                        <label className="form-label">Password:</label>
-                        <input
-                            type="password"
-                            className="form-control"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-                    <button type="submit" className="btn btn-success">Registrarse</button>
-                </form>
-                {error && <p className="error-message">{error}</p>}
-                {success && <p className="success-message">{success}</p>}
-                <p>¿Ya tienes una cuenta? <Link to="/login">Iniciar sesión</Link></p>
-            </div>
-        </div>
+        <UsersCreateForm
+            username={username}
+            email={email}
+            password={password}
+            error={error}
+            success={success}
+            loading={false}
+            onUsernameChange={(e) => setUsername(e.target.value)}
+            onEmailChange={(e) => setEmail(e.target.value)}
+            onPasswordChange={(e) => setPassword(e.target.value)}
+            onSubmit={handleSubmit}
+        />
+
     );
 };
 

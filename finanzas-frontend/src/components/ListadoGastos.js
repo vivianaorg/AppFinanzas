@@ -27,6 +27,9 @@ const ListadoGastos = () => {
             setError("No hay sesión activa. Por favor inicie sesión nuevamente.");
         }
     }, [mes, anio]); // Recargar cuando cambie el mes o año
+    useEffect(() => {
+        obtenerCategorias();
+    }, []);
 
     const obtenerGastosMensuales = async () => {
         setLoading(true);

@@ -114,12 +114,15 @@ class ResumenFinancieroActualView(APIView):
 
             ingresos = Ingreso.objects.filter(usuario=request.user, fecha__month=mes, fecha__year=anio).aggregate(total=Sum("cantidad"))["total"] or 0
             gastos = Gasto.objects.filter(usuario=request.user, fecha__month=mes, fecha__year=anio).aggregate(total=Sum("cantidad"))["total"] or 0
+            ahorro = Ahorro.objects.filter(usuario=request.user, fecha__month=mes, fecha__year=anio).aggregate(total=Sum("cantidad"))["total"] or 0
+
 
             return Response({
                 "mes": mes,
                 "anio": anio,
                 "ingresos": ingresos,
-                "gastos": gastos
+                "gastos": gastos,
+                "ahorros":ahorro,
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -159,39 +162,40 @@ class UltimosMovimientosView(APIView):
             ultimos_gastos = Gasto.objects.filter(
                 usuario=request.user
             ).order_by('-fecha')[:10]
+
+            # Obtener los últimos 10 ahorros
+            ultimos_ahorros = Ahorro.objects.filter(
+                usuario=request.user
+            ).order_by('-fecha')[:10]
             
             # Serializar los resultados
             ingresos_serialized = IngresoSerializer(ultimos_ingresos, many=True).data
             gastos_serialized = GastoSerializer(ultimos_gastos, many=True).data
+            ahorros_serialized = AhorroSerializer(ultimos_ahorros, many=True).data
             
-            # Combinar ambos tipos de movimientos
+            # Combinar todos los movimientos
             todos_movimientos = []
             
             # Procesar ingresos
             for ingreso in ingresos_serialized:
                 ingreso['tipo'] = 'ingreso'
-                # Obtener y agregar el nombre de la categoría
                 categoria_id = ingreso.get('categoria')
-                if categoria_id:
-                    try:
-                        categoria = Categoria.objects.get(id=categoria_id)
-                        ingreso['categoria_nombre'] = categoria.nombre
-                    except Categoria.DoesNotExist:
-                        ingreso['categoria_nombre'] = 'Sin categoría'
+                ingreso['categoria_nombre'] = self.obtener_nombre_categoria(categoria_id)
                 todos_movimientos.append(ingreso)
             
             # Procesar gastos
             for gasto in gastos_serialized:
                 gasto['tipo'] = 'gasto'
-                # Obtener y agregar el nombre de la categoría
                 categoria_id = gasto.get('categoria')
-                if categoria_id:
-                    try:
-                        categoria = Categoria.objects.get(id=categoria_id)
-                        gasto['categoria_nombre'] = categoria.nombre
-                    except Categoria.DoesNotExist:
-                        gasto['categoria_nombre'] = 'Sin categoría'
+                gasto['categoria_nombre'] = self.obtener_nombre_categoria(categoria_id)
                 todos_movimientos.append(gasto)
+
+            # Procesar ahorros
+            for ahorro in ahorros_serialized:
+                ahorro['tipo'] = 'ahorro'
+                categoria_id = ahorro.get('categoria')
+                ahorro['categoria_nombre'] = self.obtener_nombre_categoria(categoria_id)
+                todos_movimientos.append(ahorro)
             
             # Ordenar y limitar a los 10 más recientes
             todos_movimientos.sort(key=lambda x: x['fecha'], reverse=True)
@@ -200,9 +204,18 @@ class UltimosMovimientosView(APIView):
             return Response({
                 "movimientos": ultimos_10_movimientos
             }, status=status.HTTP_200_OK)
-            
+        
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def obtener_nombre_categoria(self, categoria_id):
+        if categoria_id:
+            try:
+                categoria = Categoria.objects.get(id=categoria_id)
+                return categoria.nombre
+            except Categoria.DoesNotExist:
+                return 'Sin categoría'
+        return 'Sin categoría'
         
 class MovimientosMensualesView(APIView):
     permission_classes = [IsAuthenticated]
@@ -277,7 +290,13 @@ class MovimientosMensualesView(APIView):
             # Procesar ahorros
             for ahorro in ahorros_serialized:
                 ahorro['tipo'] = 'ahorro'
-                ahorro['categoria_nombre'] = 'Ahorro'  # Los ahorros no tienen categoría en el modelo actual
+                categoria_id = ahorro.get('categoria')
+                if categoria_id:
+                    try:
+                        categoria = Categoria.objects.get(id=categoria_id)
+                        ahorro['categoria_nombre'] = categoria.nombre
+                    except Categoria.DoesNotExist:
+                        ahorro['categoria_nombre'] = 'Sin categoría'
                 todos_movimientos.append(ahorro)
             
             # Ordenar todos los movimientos por fecha (más recientes primero)
