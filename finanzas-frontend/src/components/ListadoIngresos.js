@@ -149,31 +149,61 @@ const ListadoIngresosjs = () => {
     const abrirModal = (ingreso) => {
         setIngresoSeleccionado(ingreso);
         setMostrarModal(true);
+        setEditando(false); // Resetear el estado de edición
     };
 
     const cerrarModal = () => {
         setMostrarModal(false);
         setIngresoSeleccionado(null);
+        setEditando(false);
+        // Resetear el formulario
+        setFormIngreso({
+            id: null,
+            categoria_id: '',
+            categoria_nombre: '',
+            cantidad: '',
+        });
     };
 
     
     const iniciarEdicion = () => {
-        setFormIngreso({
-            id: ingresoSeleccionado.id,
-            categoria_nombre: ingresoSeleccionado.categoria_nombre,
-            cantidad: ingresoSeleccionado.cantidad,
-        });
-        setEditando(true);
+        if (ingresoSeleccionado) {
+            // Buscar la categoría ID correspondiente
+            const categoriaEncontrada = categorias.find(
+                cat => cat.nombre === ingresoSeleccionado.categoria_nombre
+            );
+            
+            setFormIngreso({
+                id: ingresoSeleccionado.id,
+                categoria_id: categoriaEncontrada ? categoriaEncontrada.id.toString() : '',
+                categoria_nombre: ingresoSeleccionado.categoria_nombre,
+                cantidad: ingresoSeleccionado.cantidad.toString(),
+            });
+            setEditando(true);
+        }
     };
 
     const guardarEdicion = async () => {
         try {
             const token = getToken();
+            
+            // Validar datos antes de enviar
+            if (!formIngreso.categoria_id || !formIngreso.cantidad) {
+                alert("Por favor complete todos los campos");
+                return;
+            }
+
+            const cantidadNumerica = parseFloat(formIngreso.cantidad);
+            if (isNaN(cantidadNumerica) || cantidadNumerica <= 0) {
+                alert("Por favor ingrese una cantidad válida");
+                return;
+            }
+
             await axios.patch(
                 `http://127.0.0.1:8000/ingresos/${formIngreso.id}/`,
                 {
-                    categoria: formIngreso.categoria_id,
-                    cantidad: formIngreso.cantidad
+                    categoria: parseInt(formIngreso.categoria_id),
+                    cantidad: cantidadNumerica
                 },
                 {
                     headers: {
@@ -182,13 +212,16 @@ const ListadoIngresosjs = () => {
                     }
                 }
             );
-            alert("Ingreso actualizado correctamente")
-
-            setEditando(false);
-            setIngresoSeleccionado(null);
-            obtenerIngresosMensuales();
+            
+            alert("Ingreso actualizado correctamente");
+            cerrarModal();
+            obtenerIngresosMensuales(); // Recargar los datos
+            
         } catch (error) {
             console.error("Error al guardar cambios:", error);
+            if (error.response?.data) {
+                console.error("Detalles del error:", error.response.data);
+            }
             alert("Hubo un error al actualizar el ingreso.");
         }
     };
@@ -202,6 +235,15 @@ const ListadoIngresosjs = () => {
             categoria_id: categoriaId,
             categoria_nombre: categoriaNombre
         });
+    };
+    // NUEVA FUNCIÓN para manejar el cambio de cantidad
+    const handleCantidadChange = (e) => {
+        const nuevaCantidad = e.target.value;
+        
+        setFormIngreso(prevForm => ({
+            ...prevForm,
+            cantidad: nuevaCantidad
+        }));
     };
 
     return (
@@ -227,6 +269,7 @@ const ListadoIngresosjs = () => {
             iniciarEdicion={iniciarEdicion}
             guardarEdicion={guardarEdicion}
             handleCategoriaChange={handleCategoriaChange}
+            handleCantidadChange={handleCantidadChange}
 
             // utils:
             nombresMeses={nombresMeses}

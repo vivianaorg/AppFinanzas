@@ -1,45 +1,34 @@
-// ListadoIngresos.jsx
-import React from "react";
+import React from 'react';
+import GraficoGastosMensuales from '../GraficoGastos'; // Ajusta si está en otra carpeta
 import "./ListadoIngresos.css";
-import GraficoIngresos from "../GraficoIngresos";
 
-const ListadoIngresos = ({
+const ListadoGastos = ({
     mes,
     anio,
-    ingresos,
-    totalIngresos,
+    nombresMeses,
+    gastos,
+    totalGastos,
     loading,
     error,
-    categorias,
-    ingresoSeleccionado,
-    mostrarModal,
-    editando,
-    setEditando,
-    formIngreso,
-    setFormIngreso,
-
-    // Handlers
     handleMesAnterior,
     handleMesSiguiente,
     abrirModal,
+    formatearCantidad,
+    mostrarModal,
+    gastoSeleccionado,
     cerrarModal,
-    iniciarEdicion,
-    guardarEdicion,
+    formatearFecha,
+    editando,
+    setEditando,
+    formGasto,
+    setFormIngreso,
     handleCategoriaChange,
     handleCantidadChange,
-
-    // Utilitarios
-    nombresMeses,
-    formatearCantidad,
-    formatearFecha,
+    guardarEdicion,
+    iniciarEdicion,
+    categorias,
+    setGastoSeleccionado,
 }) => {
-    // Agrupar ingresos por categoría
-    const ingresosPorCategoria = ingresos.reduce((acc, ingreso) => {
-        const categoria = ingreso.categoria_nombre || "Sin categoría";
-        acc[categoria] = (acc[categoria] || 0) + ingreso.cantidad;
-        return acc;
-    }, {});
-
     return (
         <div className="listado-container">
             {/* ─────── MAIN CONTENT ─────── */}
@@ -65,10 +54,10 @@ const ListadoIngresos = ({
                         <div className="contenido-cards">
                             {/* Historial de Ingresos */}
                             <div className="card-listado">
-                                <h3 className="card-title">Historial de Ingresos</h3>
+                                <h3 className="card-title">Historial de Gastos</h3>
                                 {loading ? (
-                                    <p className="cargando-text">Cargando ingresos...</p>
-                                ) : ingresos.length > 0 ? (
+                                    <p className="cargando-text">Cargando gastos...</p>
+                                ) : gastos.length > 0 ? (
                                     <div className="table-responsive">
                                         <table className="table-ingresos">
                                             <thead>
@@ -78,18 +67,18 @@ const ListadoIngresos = ({
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {ingresos.map((ingreso, index) => (
+                                                {gastos.map((gasto, index) => (
                                                     <tr key={index}>
                                                         <td>
                                                             <span
-                                                                onClick={() => abrirModal(ingreso)}
+                                                                onClick={() => abrirModal(gasto)}
                                                                 className="link-categoria"
                                                             >
-                                                                {ingreso.categoria_nombre || "Sin categoría"}
+                                                                {gasto.categoria_nombre || "Sin categoría"}
                                                             </span>
                                                         </td>
                                                         <td className="text-end">
-                                                            {formatearCantidad(ingreso.cantidad)}
+                                                            {formatearCantidad(gasto.cantidad)}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -98,25 +87,25 @@ const ListadoIngresos = ({
                                     </div>
                                 ) : (
                                     <p className="sin-datos">
-                                        No hay ingresos para mostrar en este período.
+                                        No hay gastos para mostrar en este período.
                                     </p>
                                 )}
                             </div>
 
                             {/* Total de Ingresos */}
                             <div className="total-card">
-                                <h3>Total de Ingresos</h3>
-                                <h2>{formatearCantidad(totalIngresos)}</h2>
+                                <h3>Total de Gastos</h3>
+                                <h2>{formatearCantidad(totalGastos)}</h2>
                             </div>
                         </div>
                     </div>
 
                     {/* LADO DERECHO: Gráfico de Ingresos */}
                     <div className="lado-derecho">
-                        <h3 className="card-title">Gráfico de Ingresos</h3>
+                        <h3 className="card-title">Gráfico de Gastos</h3>
                         <section className="grafico-section">
                             <div className="card-grafico">
-                                <GraficoIngresos mes={mes} anio={anio} />
+                                <GraficoGastosMensuales mes={mes} anio={anio} />
                             </div>
                         </section>
                     </div>
@@ -124,13 +113,13 @@ const ListadoIngresos = ({
             </main>
 
             {/* ─────── MODAL DETALLE DE INGRESO ─────── */}
-            {mostrarModal && ingresoSeleccionado && (
+            {mostrarModal && gastoSeleccionado && (
                 <div className="modal-backdrop">
                     <div className="modal-dialog-custom">
                         <div className="modal-content-custom">
                             <div className="modal-header-custom">
                                 <h5 className="modal-title">
-                                    {editando ? "Editar Ingreso" : "Detalles del Ingreso"}
+                                    {editando ? "Editar Gasto" : "Detalles del Gasto"}
                                 </h5>
                                 <button
                                     type="button"
@@ -150,7 +139,7 @@ const ListadoIngresos = ({
                                             </label>
                                             <select
                                                 className="form-control select-modern"
-                                                value={formIngreso.categoria_id || ''}
+                                                value={formGasto.categoria_id || ''}
                                                 onChange={handleCategoriaChange}
                                             >
                                                 <option value="">Seleccionar categoría</option>
@@ -172,7 +161,7 @@ const ListadoIngresos = ({
                                                 <input
                                                     type="number"
                                                     className="form-control input-modern"
-                                                    value={formIngreso.cantidad || ''}
+                                                    value={formGasto.cantidad || ''}
                                                     onChange={handleCantidadChange}
                                                     placeholder="0"
                                                     min="0"
@@ -185,11 +174,11 @@ const ListadoIngresos = ({
                                             <h6>Valores Actuales:</h6>
                                             <div className="value-item">
                                                 <span className="label">Categoría:</span>
-                                                <span className="value">{ingresoSeleccionado.categoria_nombre || "Sin categoría"}</span>
+                                                <span className="value">{gastoSeleccionado.categoria_nombre || "Sin categoría"}</span>
                                             </div>
                                             <div className="value-item">
                                                 <span className="label">Cantidad:</span>
-                                                <span className="value">{formatearCantidad(ingresoSeleccionado.cantidad)}</span>
+                                                <span className="value">{formatearCantidad(gastoSeleccionado.cantidad)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -200,7 +189,7 @@ const ListadoIngresos = ({
                                             <div className="detail-content">
                                                 <span className="detail-label">Categoría</span>
                                                 <span className="detail-value">
-                                                    {ingresoSeleccionado.categoria_nombre || "Sin categoría"}
+                                                    {gastoSeleccionado.categoria_nombre || "Sin categoría"}
                                                 </span>
                                             </div>
                                         </div>
@@ -210,7 +199,7 @@ const ListadoIngresos = ({
                                             <div className="detail-content">
                                                 <span className="detail-label">Fecha</span>
                                                 <span className="detail-value">
-                                                    {formatearFecha(ingresoSeleccionado.fecha)}
+                                                    {formatearFecha(gastoSeleccionado.fecha)}
                                                 </span>
                                             </div>
                                         </div>
@@ -220,7 +209,7 @@ const ListadoIngresos = ({
                                             <div className="detail-content">
                                                 <span className="detail-label">Valor</span>
                                                 <span className="detail-value highlight">
-                                                    {formatearCantidad(ingresoSeleccionado.cantidad)}
+                                                    {formatearCantidad(gastoSeleccionado.cantidad)}
                                                 </span>
                                             </div>
                                         </div>
@@ -233,7 +222,7 @@ const ListadoIngresos = ({
                                         <button 
                                             className="btn btn-success btn-modern" 
                                             onClick={guardarEdicion}
-                                            disabled={!formIngreso.categoria_id || !formIngreso.cantidad}
+                                            disabled={!formGasto.categoria_id || !formGasto.cantidad}
                                         >
                                             <span className="btn-icon">💾</span>
                                             Guardar Cambios
@@ -273,4 +262,4 @@ const ListadoIngresos = ({
     );
 };
 
-export default ListadoIngresos;
+export default ListadoGastos;

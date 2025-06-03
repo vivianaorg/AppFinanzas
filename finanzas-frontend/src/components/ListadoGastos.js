@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { isAuthenticated, getToken, setupAxiosInterceptors } from "./auth";
-import GraficoGastosMensuales from "./GraficoGastos";
+import ListadoGastos from "./react/ListadoGastos";
 
-const ListadoGastos = () => {
+const ListadoGastosjs = () => {
     const [mes, setMes] = useState(new Date().getMonth() + 1);
     const [anio, setAnio] = useState(new Date().getFullYear());
     const [gastos, setGastos] = useState([]);
@@ -14,7 +14,14 @@ const ListadoGastos = () => {
     //editar
     const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
     const [mostrarModal, setMostrarModal] = useState(false);
+    
     const [categorias, setCategorias] = useState([]);
+    const [editando, setEditando] = useState(false);
+        const [formGasto, setFormIngreso] = useState({
+            id: null,
+            categoria_nombre: '',
+            cantidad: '',
+        });
 
     useEffect(() => {
         setupAxiosInterceptors();
@@ -30,6 +37,18 @@ const ListadoGastos = () => {
     useEffect(() => {
         obtenerCategorias();
     }, []);
+
+    const obtenerCategorias = async () => {
+        try {
+            const token = getToken();
+            const res = await axios.get('http://127.0.0.1:8000/categorias/', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setCategorias(res.data);
+        } catch (err) {
+            console.error("Error al obtener categorías:", err);
+        }
+    };
 
     const obtenerGastosMensuales = async () => {
         setLoading(true);
@@ -87,27 +106,13 @@ const ListadoGastos = () => {
             setLoading(false);
         }
     };
-    const obtenerCategorias = async () => {
-        try {
-            const token = getToken();
-            const res = await axios.get('http://127.0.0.1:8000/categorias/', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setCategorias(res.data);
-        } catch (err) {
-            console.error("Error al obtener categorías:", err);
-        }
-    };
+    
 
-    const formatearFecha = (fechaString) => {
-        const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    };
-
+    const nombresMeses = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+    
     const handleMesAnterior = () => {
         if (mes === 1) {
             setMes(12);
@@ -126,11 +131,6 @@ const ListadoGastos = () => {
         }
     };
 
-    const nombresMeses = [
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
-
     const formatearCantidad = (cantidad) => {
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
@@ -140,40 +140,74 @@ const ListadoGastos = () => {
         }).format(cantidad);
     };
 
+    const formatearFecha = (fechaString) => {
+        const fecha = new Date(fechaString);
+        return fecha.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
+
     //editar
     const abrirModal = (ingreso) => {
         setGastoSeleccionado(ingreso);
         setMostrarModal(true);
+        setEditando(false);
     };
 
     const cerrarModal = () => {
         setMostrarModal(false);
         setGastoSeleccionado(null);
+        setEditando(false);
+        // Resetear el formulario
+        setFormIngreso({
+            id: null,
+            categoria_id: '',
+            categoria_nombre: '',
+            cantidad: '',
+        });
     };
 
-    const [editando, setEditando] = useState(false);
-    const [formIngreso, setFormIngreso] = useState({
-        id: null,
-        categoria_nombre: '',
-        cantidad: '',
-    });
     const iniciarEdicion = () => {
-        setFormIngreso({
-            id: gastoSeleccionado.id,
-            categoria_nombre: gastoSeleccionado.categoria_nombre,
-            cantidad: gastoSeleccionado.cantidad,
-        });
-        setEditando(true);
+        if (gastoSeleccionado) {
+            // Buscar la categoría ID correspondiente
+            const categoriaEncontrada = categorias.find(
+                cat => cat.nombre === gastoSeleccionado.categoria_nombre
+            );
+            
+            setFormIngreso({
+                id: gastoSeleccionado.id,
+                categoria_id: categoriaEncontrada ? categoriaEncontrada.id.toString() : '',
+                categoria_nombre: gastoSeleccionado.categoria_nombre,
+                cantidad: gastoSeleccionado.cantidad.toString(),
+            });
+            setEditando(true);
+        }
     };
 
     const guardarEdicion = async () => {
         try {
             const token = getToken();
+            
+            // Validar datos antes de enviar
+            if (!formGasto.categoria_id || !formGasto.cantidad) {
+                alert("Por favor complete todos los campos");
+                return;
+            }
+
+            const cantidadNumerica = parseFloat(formGasto.cantidad);
+            if (isNaN(cantidadNumerica) || cantidadNumerica <= 0) {
+                alert("Por favor ingrese una cantidad válida");
+                return;
+            }
+
             await axios.patch(
-                `http://127.0.0.1:8000/gastos/${formIngreso.id}/`,
+                `http://127.0.0.1:8000/ingresos/${formGasto.id}/`,
                 {
-                    categoria: formIngreso.categoria_id,
-                    cantidad: formIngreso.cantidad
+                    categoria: parseInt(formGasto.categoria_id),
+                    cantidad: cantidadNumerica
                 },
                 {
                     headers: {
@@ -182,13 +216,16 @@ const ListadoGastos = () => {
                     }
                 }
             );
-            alert("Gasto actualizado correctamente")
-
-            setEditando(false);
-            setGastoSeleccionado(null);
-            obtenerGastosMensuales();
+            
+            alert("Ingreso actualizado correctamente");
+            cerrarModal();
+            obtenerGastosMensuales(); // Recargar los datos
+            
         } catch (error) {
             console.error("Error al guardar cambios:", error);
+            if (error.response?.data) {
+                console.error("Detalles del error:", error.response.data);
+            }
             alert("Hubo un error al actualizar el ingreso.");
         }
     };
@@ -198,248 +235,52 @@ const ListadoGastos = () => {
         const categoriaNombre = categorias.find(cat => cat.id.toString() === categoriaId)?.nombre || '';
 
         setFormIngreso({
-            ...formIngreso,
+            ...formGasto,
             categoria_id: categoriaId,
             categoria_nombre: categoriaNombre
         });
     };
 
-
+    const handleCantidadChange = (e) => {
+        const nuevaCantidad = e.target.value;
+        
+        setFormIngreso(prevForm => ({
+            ...prevForm,
+            cantidad: nuevaCantidad
+        }));
+    };
     return (
-        <div className="container">
-            <div className="row">
-                {/* Menú lateral */}
-                <div className="col-md-3 bg-dark text-white p-0">
-                    <div className="d-flex flex-column min-vh-100">
-                        <div className="p-4 text-center">
-                            <h3>Gastos</h3>
-                        </div>
-                        <div className="nav flex-column nav-pills">
-                            <Link to="/home" className="nav-link text-white py-3 ps-4">Resumen</Link>
-                            <Link to="/movimientos-mensuales" className="nav-link text-white py-3 ps-4">Movimientos</Link>
-                            <Link to="/listado-ingresos" className="nav-link text-white py-3 ps-4">Ingresos</Link>
-                            <Link to="/listado-gastos" className="nav-link text-white active py-3 ps-4">Gastos</Link>
-                            <Link to="/agregar" className="nav-link text-white py-3 ps-4">Agregar</Link>
-                        </div>
-                        <div className="mt-auto">
-                            <button
-                                onClick={() => window.location.href = "/login"}
-                                className="btn btn-danger w-100 rounded-0 py-3">
-                                Cerrar sesión
-                            </button>
-                        </div>
-                    </div>
-                </div>
+        <ListadoGastos
+            mes={mes}
+            anio={anio}
+            gastos={gastos}
+            totalGastos={totalGastos}
+            loading={loading}
+            error={error}
+            categorias={categorias}
+            gastoSeleccionado={gastoSeleccionado}
+            mostrarModal={mostrarModal}
+            editando={editando}
+            setEditando={setEditando}
+            formGasto={formGasto}
+            setFormIngreso={setFormIngreso}
 
-                {/* Contenido principal */}
-                <div className="col-md-9 p-0">
-                    <div className="container-fluid p-4">
-                        {/* Encabezado con navegación de meses */}
-                        <div className="d-flex justify-content-between align-items-center mb-4">
-                            <div className="d-flex align-items-center">
-                                <button
-                                    className="btn btn-outline-secondary me-2"
-                                    onClick={handleMesAnterior}>
-                                    ←
-                                </button>
-                                <h2 className="mb-0 text-danger">{nombresMeses[mes - 1]} {anio}</h2>
-                                <button
-                                    className="btn btn-outline-secondary ms-2"
-                                    onClick={handleMesSiguiente}>
-                                    →
-                                </button>
-                            </div>
-                            <div className="d-flex align-items-center">
-                                <div className="rounded-circle bg-danger text-white p-3">
-                                    <i className="bi bi-person"></i>
-                                </div>
-                            </div>
-                        </div>
+            // handlers:
+            handleMesAnterior={handleMesAnterior}
+            handleMesSiguiente={handleMesSiguiente}
+            abrirModal={abrirModal}
+            cerrarModal={cerrarModal}
+            iniciarEdicion={iniciarEdicion}
+            guardarEdicion={guardarEdicion}
+            handleCategoriaChange={handleCategoriaChange}
+            handleCantidadChange={handleCantidadChange}
 
-                        {error && <div className="alert alert-danger">{error}</div>}
-
-                        {/* Gráfico de gastos por categoría */}
-                        <div className="card mb-4">
-                            <div className="card-body">
-                                <GraficoGastosMensuales
-                                    gastos={gastos}
-                                    totalGastos={totalGastos}
-                                    loading={loading}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="row">
-                            {/* Listado de gastos recientes */}
-                            <div className="col-md-7">
-                                <div className="card bg-light mb-4">
-                                    <div className="card-body">
-                                        <h3 className="card-title">Historial de Gastos</h3>
-
-                                        {loading ? (
-                                            <p className="text-center my-4">Cargando gastos...</p>
-                                        ) : gastos && gastos.length > 0 ? (
-                                            <div className="table-responsive">
-                                                <table className="table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Categoría</th>
-                                                            <th className="text-end">Valor</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {gastos.map((gasto, index) => (
-                                                            <tr key={index}>
-                                                                <td>
-                                                                    <span
-                                                                        onClick={() => abrirModal(gasto)}
-                                                                        style={{ cursor: 'pointer', textDecoration: 'underline', color: '#007bff' }}
-                                                                    >
-                                                                        {gasto.categoria_nombre || 'Sin categoría'}
-                                                                    </span>
-                                                                </td>
-                                                                <td className="text-end">{formatearCantidad(gasto.cantidad)}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        ) : (
-                                            <p className="text-center my-4">No hay gastos para mostrar en este período.</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Total de gastos */}
-                                <div className="card bg-danger text-white">
-                                    <div className="card-body">
-                                        <h3 className="card-title">Total de Gastos</h3>
-                                        <h2 className="card-text">{formatearCantidad(totalGastos)}</h2>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Distribución de gastos por categoría */}
-                            <div className="col-md-5">
-                                <div className="card h-100">
-                                    <div className="card-body">
-                                        <h3 className="card-title">Distribución por Categoría</h3>
-                                        {loading ? (
-                                            <div className="d-flex justify-content-center align-items-center h-75">
-                                                <p>Cargando datos...</p>
-                                            </div>
-                                        ) : gastos && gastos.length > 0 ? (
-                                            <div className="mt-3">
-                                                {gastos.map((gasto, index) => {
-                                                    const porcentaje = (gasto.cantidad / totalGastos) * 100;
-                                                    return (
-                                                        <div key={index} className="mb-3">
-                                                            <div className="d-flex justify-content-between mb-1">
-                                                                <span>{gasto.categoria_nombre || 'Sin categoría'}</span>
-                                                                <span>{formatearCantidad(gasto.cantidad)} ({porcentaje.toFixed(1)}%)</span>
-                                                            </div>
-                                                            <div className="progress" style={{ height: '10px' }}>
-                                                                <div
-                                                                    className="progress-bar bg-danger"
-                                                                    role="progressbar"
-                                                                    style={{ width: `${porcentaje}%` }}
-                                                                    aria-valuenow={porcentaje}
-                                                                    aria-valuemin="0"
-                                                                    aria-valuemax="100">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div className="d-flex justify-content-center align-items-center h-75">
-                                                <p className="text-muted">No hay datos para mostrar</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {mostrarModal && gastoSeleccionado && (
-                <div
-                    className="modal d-block"
-                    tabIndex="-1"
-                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                >
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Detalles del Gasto</h5>
-                                <button type="button" className="btn-close" onClick={cerrarModal}></button>
-                            </div>
-                            <div className="modal-body">
-                                <p><strong>Categoría:</strong> {gastoSeleccionado.categoria_nombre || 'Sin categoría'}</p>
-                                <p><strong>Fecha:</strong> {formatearFecha(gastoSeleccionado.fecha)}</p>
-                                <p><strong>Valor:</strong> {formatearCantidad(gastoSeleccionado.cantidad)}</p>
-                                {editando ? (
-                                    <div>
-                                        <div className="mb-3">
-                                            <label className="form-label">Categoría</label>
-                                            <select
-                                                className="form-select"
-                                                value={formIngreso.categoria_id}
-                                                onChange={handleCategoriaChange}
-                                            >
-                                                <option value="">Seleccionar categoría</option>
-                                                {categorias.map(categoria => (
-                                                    <option key={categoria.id} value={categoria.id}>
-                                                        {categoria.nombre}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="form-label">Cantidad</label>
-                                            <input
-                                                type="number"
-                                                className="form-control"
-                                                value={formIngreso.cantidad}
-                                                onChange={(e) => setFormIngreso({ ...formIngreso, cantidad: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                    </>
-                                )}
-
-                            </div>
-                            <div className="modal-footer">
-                                {editando ? (
-                                    <>
-                                        <button className="btn btn-success" onClick={guardarEdicion}>
-                                            Guardar
-                                        </button>
-                                        <button className="btn btn-secondary" onClick={() => setEditando(false)}>
-                                            Cancelar
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button className="btn btn-primary" onClick={iniciarEdicion}>
-                                        Editar
-                                    </button>
-                                )}
-                                <button className="btn btn-secondary" onClick={() => setGastoSeleccionado(null)}>
-                                    Cerrar
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+            // utils:
+            nombresMeses={nombresMeses}
+            formatearCantidad={formatearCantidad}
+            formatearFecha={formatearFecha}
+        />
     );
 };
 
-export default ListadoGastos;
+export default ListadoGastosjs;
