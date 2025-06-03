@@ -99,8 +99,6 @@ const ListadoGastos = () => {
         }
     };
 
-    obtenerCategorias();
-
     const formatearFecha = (fechaString) => {
         const fecha = new Date(fechaString);
         return fecha.toLocaleDateString('es-ES', {

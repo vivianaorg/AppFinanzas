@@ -105,7 +105,6 @@ const GraficoIngresosMensuales = ({ mes, anio }) => {
 
   return (
     <div className="h-100">
-      <h3 className="card-title">Ingresos Mensuales</h3>
       
       {loading ? (
         <div className="d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
