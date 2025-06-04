@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 import { isAuthenticated, getToken, setupAxiosInterceptors } from "./auth";
 import ListadoGastos from "./react/ListadoGastos";
 
@@ -204,7 +203,7 @@ const ListadoGastosjs = () => {
             }
 
             await axios.patch(
-                `http://127.0.0.1:8000/ingresos/${formGasto.id}/`,
+                `http://127.0.0.1:8000/gastos/${formGasto.id}/`,
                 {
                     categoria: parseInt(formGasto.categoria_id),
                     cantidad: cantidadNumerica
@@ -217,7 +216,7 @@ const ListadoGastosjs = () => {
                 }
             );
             
-            alert("Ingreso actualizado correctamente");
+            alert("Gasto actualizado correctamente");
             cerrarModal();
             obtenerGastosMensuales(); // Recargar los datos
             
