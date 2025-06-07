@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { getToken, refreshToken, isAuthenticated } from "./auth";
-import GraficoFinanciero from "./GraficoFinanciero";
 import FinancialDashboard from './react/home';
 
 const Home = ({ user, handleLogout }) => {
@@ -93,19 +92,30 @@ const Home = ({ user, handleLogout }) => {
         }
     };
 
-    const formatearFecha = (fechaString) => {
-        const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    };
-
     const nombresMeses = [
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
+
+    const formatearFecha = (fechaString) => {
+    // Crear fecha en zona horaria de Colombia para evitar desfase
+    const fecha = new Date(fechaString + 'T00:00:00-05:00');
+    return fecha.toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+};
+
+// Agregar función para formatear cantidades
+const formatearCantidad = (cantidad) => {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(cantidad);
+};
 
     return (
             <FinancialDashboard 
@@ -113,6 +123,7 @@ const Home = ({ user, handleLogout }) => {
                 resumen={resumen}
                 ultimosMovimientos={ultimosMovimientos}
                 formatearFecha={formatearFecha}
+                formatearCantidad={formatearCantidad}
             />  
             );
 };

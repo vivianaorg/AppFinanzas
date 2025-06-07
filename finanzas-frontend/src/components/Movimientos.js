@@ -87,14 +87,29 @@ const MovimientosMensuales = ({ user }) => {
         }
     };
 
-    // El resto del componente permanece igual
+    // FUNCIÓN CORREGIDA: Formatear fecha sin problemas de zona horaria
     const formatearFecha = (fechaString) => {
-        const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString('es-ES', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric' 
-        });
+        if (!fechaString) return '';
+        
+        // Si la fecha viene en formato YYYY-MM-DD, parseamos manualmente
+        if (fechaString.includes('-') && fechaString.length === 10) {
+            const [año, mes, dia] = fechaString.split('-');
+            return `${dia}/${mes}/${año}`;
+        }
+        
+        // Si viene en otro formato, usamos el método anterior pero con precauciones
+        try {
+            // Agregar tiempo para evitar problemas de zona horaria
+            const fecha = new Date(fechaString + 'T12:00:00');
+            return fecha.toLocaleDateString('es-ES', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
+            });
+        } catch (error) {
+            console.warn('Error al formatear fecha:', fechaString);
+            return fechaString; // Devolver la fecha original si hay error
+        }
     };
 
     const nombresMeses = [
@@ -128,6 +143,24 @@ const MovimientosMensuales = ({ user }) => {
         }
     };
 
+    // FUNCIÓN PARA FORMATEAR CANTIDADES EN FORMATO COP
+    const formatearCantidadCOP = (cantidad) => {
+        if (!cantidad && cantidad !== 0) return '$0';
+        
+        // Convertir a número si viene como string
+        const numero = typeof cantidad === 'string' ? parseFloat(cantidad) : cantidad;
+        
+        if (isNaN(numero)) return '$0';
+        
+        // Formatear con separadores de miles y decimales
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(numero);
+    };
+
     return (
         <MovimientosMensualesView
             mes={mes}
@@ -139,6 +172,7 @@ const MovimientosMensuales = ({ user }) => {
             loading={loading}
             movimientos={movimientos}
             formatearFecha={formatearFecha}
+            formatearCantidadCOP={formatearCantidadCOP}
             getRowClass={getRowClass}
             getBadgeInfo={getBadgeInfo}
             obtenerMovimientosMensuales={obtenerMovimientosMensuales}

@@ -130,22 +130,49 @@ const ListadoIngresosjs = () => {
         }
     };
 
+    // Función mejorada para formatear cantidades en COP
     const formatearCantidad = (cantidad) => {
-        return new Intl.NumberFormat('es-ES', {
+        // Convertir a número si es string
+        const numeroLimpio = typeof cantidad === 'string' ? 
+            parseFloat(cantidad.replace(/[^\d.-]/g, '')) : 
+            parseFloat(cantidad);
+        
+        // Verificar que sea un número válido
+        if (isNaN(numeroLimpio)) return 'COP $0';
+        
+        return new Intl.NumberFormat('es-CO', {
             style: 'currency',
             currency: 'COP',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
-        }).format(cantidad);
+        }).format(numeroLimpio);
     };
+
+    // Función para formatear cantidad sin el símbolo de moneda (para inputs)
+    const formatearCantidadSinMoneda = (cantidad) => {
+        const numeroLimpio = typeof cantidad === 'string' ? 
+            parseFloat(cantidad.replace(/[^\d.-]/g, '')) : 
+            parseFloat(cantidad);
+        
+        if (isNaN(numeroLimpio)) return '0';
+        
+        return new Intl.NumberFormat('es-CO', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(numeroLimpio);
+    };
+
     const formatearFecha = (fechaString) => {
-        const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString('es-ES', {
+        // Crear fecha tratándola como hora local (Colombia) en lugar de UTC
+        // Esto evita problemas de zona horaria cuando USE_TZ = False en Django
+        const fecha = new Date(fechaString + 'T00:00:00');
+        return fecha.toLocaleDateString('es-CO', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
         });
     };
+
     const abrirModal = (ingreso) => {
         setIngresoSeleccionado(ingreso);
         setMostrarModal(true);
@@ -165,7 +192,6 @@ const ListadoIngresosjs = () => {
         });
     };
 
-    
     const iniciarEdicion = () => {
         if (ingresoSeleccionado) {
             // Buscar la categoría ID correspondiente
@@ -193,7 +219,10 @@ const ListadoIngresosjs = () => {
                 return;
             }
 
-            const cantidadNumerica = parseFloat(formIngreso.cantidad);
+            // Limpiar la cantidad de formato y convertir a número
+            const cantidadLimpia = formIngreso.cantidad.replace(/[^\d.-]/g, '');
+            const cantidadNumerica = parseFloat(cantidadLimpia);
+            
             if (isNaN(cantidadNumerica) || cantidadNumerica <= 0) {
                 alert("Por favor ingrese una cantidad válida");
                 return;
@@ -236,13 +265,30 @@ const ListadoIngresosjs = () => {
             categoria_nombre: categoriaNombre
         });
     };
-    // NUEVA FUNCIÓN para manejar el cambio de cantidad
+
+    // Función mejorada para manejar el cambio de cantidad con formato
     const handleCantidadChange = (e) => {
-        const nuevaCantidad = e.target.value;
+        let valor = e.target.value;
+        
+        // Remover todo excepto dígitos
+        valor = valor.replace(/[^\d]/g, '');
+        
+        // Si está vacío, mantener vacío
+        if (valor === '') {
+            setFormIngreso(prevForm => ({
+                ...prevForm,
+                cantidad: ''
+            }));
+            return;
+        }
+        
+        // Convertir a número y formatear
+        const numero = parseInt(valor);
+        const valorFormateado = formatearCantidadSinMoneda(numero);
         
         setFormIngreso(prevForm => ({
             ...prevForm,
-            cantidad: nuevaCantidad
+            cantidad: valorFormateado
         }));
     };
 
@@ -274,6 +320,7 @@ const ListadoIngresosjs = () => {
             // utils:
             nombresMeses={nombresMeses}
             formatearCantidad={formatearCantidad}
+            formatearCantidadSinMoneda={formatearCantidadSinMoneda}
             formatearFecha={formatearFecha}
         />
     );

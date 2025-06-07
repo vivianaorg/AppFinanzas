@@ -1,291 +1,342 @@
-/* FinancialDashboard.css */
-/* Nueva estructura de layout principal */
-.main-layout {
-    display: flex;
-    gap: 20px;
-  }
-  
-  /* Columna izquierda: contiene la tarjeta de ingresos/gastos y el gráfico */
-  .left-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  /* Columna derecha: contiene las transacciones */
-  .right-column {
-    flex: 1;
-    min-width: 400px; /* Asegura un ancho mínimo para que se vea bien */
-  }
-  
-  /* Ajusta el tamaño de la tarjeta de ingresos/gastos */
-  .income-expense-card {
-    width: 100%;
-}
-  
-  /* Contenedor del gráfico */
-  .graph-container {
-    margin-left: 30px;
-    width: 450px;
-    margin-top: 20px;
-  }
-  
-  /* Asegura que el gráfico se muestre correctamente */
-  .grafico-financiero {
-    width: 100%;
-  }
-  
-  .grafico-financiero .card {
-    width: 100%;
-    margin: 0;
-  }
-  
-  /* Ajustes para la tarjeta de transacciones */
-  
-  /* Media queries para dispositivos móviles */
-  @media (max-width: 992px) {
-    .main-layout {
-      flex-direction: column;
-    }
-    
-    .right-column {
-      min-width: 0;
-    }
-  }
-/* Estilos Generales */
+/* FinancialDashboard.css - Estilos Mejorados */
+
 .financial-dashboard {
-    min-height: 100vh;
-    font-family: 'Arial', sans-serif;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1f2937;
+}
+
+.dashboard-header {
+  backdrop-filter: blur(20px);
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 30px;
+  align-items: start;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 400px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.summary-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.income-expense-card {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  color: white;
+}
+
+.saldo-card {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.icon-container {
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.income-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.expense-icon {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.saldo-icon {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+.summary-text {
+  flex: 1;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.chart-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.chart-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  color: #374151;
+}
+
+.chart-placeholder {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  height: 160px;
+  padding: 0 10px;
+}
+
+.bar {
+  flex: 1;
+  border-radius: 8px 8px 0 0;
+  min-height: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.bar:hover {
+  opacity: 0.8;
+  transform: scaleY(1.05);
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  width: 600px;
+}
+
+.transactions-card {
+  background:#e9ecef;
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  height: fit-content;
+}
+
+.transactions-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 25px 0;
+  color: #374151;
+}
+
+.transactions-container {
+  overflow-x: auto;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transactions-table th {
+  text-align: left;
+  padding: 15px 20px;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.transactions-table td {
+  padding: 18px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  font-weight: 500;
+}
+
+.transactions-table tr {
+  transition: all 0.2s ease;
+}
+
+.transactions-table tr:hover {
+  background-color: #f8fafc;
+  transform: translateX(5px);
+}
+
+.amount-column {
+  text-align: right;
+}
+
+.income-text {
+  color: #059669;
+  font-weight: 700;
+}
+
+.expense-text {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.no-transactions {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    gap: 25px;
   }
   
-  /* Header */
+  .dashboard-container {
+    padding: 20px 15px;
+  }
+  
+  .summary-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
   .dashboard-header {
-    background-color: white;
-    padding: 15px 30px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    padding: 15px 20px;
   }
   
-  .user-info {
-    display: flex;
-    align-items: center;
+  .dashboard-title {
+    font-size: 1.2rem;
   }
   
   .user-avatar {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    background-color: #8b0000;
-    margin-right: 10px;
-  }
-  
-  .user-name {
-    font-weight: 500;
-    color: #333;
-  }
-  
-  /* Contenedor principal */
-  .dashboard-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 25px 15px;
-  }
-  
-  /* Tarjetas */
-  .dashboard-cards {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-  
-  @media (min-width: 768px) {
-    .dashboard-cards {
-      grid-template-columns: 1fr 1fr;
-    }
+    font-size: 1rem;
   }
   
   .summary-card {
-    margin-left: 80px;
-    border-radius: 25px;
     padding: 20px;
   }
   
-  .card-title {
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-top: 0;
-    margin-bottom: 20px;
-  }
-  
-  /* Tarjeta de ingresos y gastos */
-  .income-expense-card {
-    max-width: 250px;
-    max-height: 130px;
-    background-color: #555;
-    color: white;
-  }
-  
-  .card-content {
-    padding: 10px 0;
-  }
-  
-  .summary-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .summary-item:last-child {
-    margin-bottom: 0;
-  }
-  
-  .icon-container {
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-  }
-  
-  .income-icon {
-    background-color: #4caf50;
-  }
-  
-  .expense-icon {
-    background-color: #f44336;
-  }
-  
-  .icon {
-    width: 24px;
-    height: 24px;
-    color: white;
-  }
-  
-  .summary-text {
-    flex: 1;
-  }
-  
-  .summary-label {
-    font-size: 0.9rem;
-    margin-bottom: 5px;
+  .transactions-card {
+    padding: 20px;
   }
   
   .summary-value {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.3rem;
   }
-  
-  /* Tarjeta de gráfico */ 
-.dashboard-content-columns {
-    display: flex;
-    gap: 20px;
-    margin-top: 20px;
-  }
-  
-  .dashboard-column {
-    flex: 1;
-    min-width: 0; /* Importante para evitar desbordamiento */
-  }
-  
-  .graph-column {
-    flex: 3; /* La columna del gráfico ocupa más espacio */
-    border-top: 200px solid transparent; /* Añade un border-top de 200px */
-    display: flex;
-    justify-content: flex-end; /* Alinea el contenido hacia la derecha */
-  }
-  
-  /* El componente del gráfico ocupa un ancho específico dentro de su columna */
-  .grafico-financiero {
-    width: 100%; /* Puedes ajustar este valor según necesites */
-    display: flex;
-    justify-content: flex-end; /* Alinea el gráfico a la derecha */
-  }
-  
-  .transactions-column {
-    flex: 2; /* La columna de transacciones es un poco más pequeña */
-  }
-  
-  /* Asegurando que el gráfico encaje bien en su contenedor */
-  .grafico-financiero .card {
-    height: 100%;
-    margin: 0;
-    width: 100%; /* Asegura que la tarjeta ocupe todo el ancho disponible */
-  }
-  
-  /* También alineamos el contenido interno del gráfico a la derecha */
-  .grafico-financiero .card-body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
-  
-  /* Excepción para el título que puede quedar alineado a la izquierda */
-  .grafico-financiero .card-title {
-    align-self: flex-start;
-  }
-  
-  /* Responsive design */
-  @media (max-width: 992px) {
-    .dashboard-content-columns {
-      flex-direction: column;
-    }
-    
-    .graph-column {
-      border-top-width: 100px; /* Reducir el borde superior en pantallas pequeñas */
-    }
-  }
-  
-  /* Tarjeta de transacciones */
-  .transactions-card {
-    width: 100%;
-    margin-left: -40px;
-    background-color: #e0e0e0;
-    border-radius: 18px;
-    padding: 20px;
-  }
-  
-  .transactions-title {
-    color: #8b0000;
-  }
-  
-  .transactions-container {
-    overflow-x: auto;
-  }
-  
-  .transactions-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .transactions-table th {
-    text-align: left;
-    padding: 12px 15px;
-    border-bottom: 1px solid #bdbdbd;
-    color: #555;
-  }
-  
-  .transactions-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  .transactions-table tr:hover {
-    background-color: #f0f0f0;
-  }
-  
-  .amount-column {
-    text-align: right;
-  }
-  
-  .income-text {
-    color: #4caf50;
-  }
-  
-  .expense-text {
-    color: #f44336;
-  }
+}

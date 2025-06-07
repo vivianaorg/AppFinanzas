@@ -22,12 +22,14 @@ const FormularioAgregarTransaccionJSX = ({
     guardarTransaccion,
     loading,
 }) => {
-    // Función para formatear la fecha
-    const formatearFecha = (fechaString) => {
-        const fecha = new Date(fechaString);
-        const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
-        return fecha.toLocaleDateString('es-ES', opciones);
+
+    const formatearCOP = (valor) => {
+        const numero = valor.replace(/\D/g, ""); // Elimina todo excepto dígitos
+        if (!numero) return "";
+
+        return new Intl.NumberFormat("es-CO").format(numero);
     };
+
 
     return (
         <div className="formulario-container">
@@ -135,12 +137,13 @@ const FormularioAgregarTransaccionJSX = ({
                     <div className="importe-container">
                         <span className="peso-symbol">$</span>
                         <input
-                            type="number"
-                            value={importe}
-                            onChange={(e) => setImporte(e.target.value)}
                             className="importe-input"
-                            min="0"
-                            placeholder="0.00"
+                            type="text"
+                            value={importe}
+                            onChange={(e) => {
+                                const valorFormateado = formatearCOP(e.target.value);
+                                setImporte(valorFormateado);
+                            }}
                         />
                     </div>
                 </div>

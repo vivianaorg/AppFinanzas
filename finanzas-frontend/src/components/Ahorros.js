@@ -21,6 +21,7 @@ const ListadoAhorros = () => {
     categoria_nombre: '',
     cantidad: '',
   });
+
   // Configurar interceptores de Axios al montar el componente
   useEffect(() => {
     setupAxiosInterceptors();
@@ -70,11 +71,17 @@ const ListadoAhorros = () => {
       console.log("Datos de ahorros (sin filtrar):", response.data);
 
       const datosFiltrados = response.data.filter(ahorro => {
-        const fechaAhorro = new Date(ahorro.fecha);
+        // Crear fecha en zona horaria de Colombia para evitar desfase
+        const fechaAhorro = new Date(ahorro.fecha + 'T00:00:00-05:00');
         return (
           fechaAhorro.getMonth() + 1 === mes &&
           fechaAhorro.getFullYear() === anio
         );
+      }).sort((a, b) => {
+        // Ordenar por fecha más reciente primero
+        const fechaA = new Date(a.fecha + 'T00:00:00-05:00');
+        const fechaB = new Date(b.fecha + 'T00:00:00-05:00');
+        return fechaB - fechaA; // Orden descendente (más reciente primero)
       });
       setAhorros(datosFiltrados);
 
@@ -117,8 +124,9 @@ const ListadoAhorros = () => {
   };
 
   const formatearFecha = (fechaString) => {
-    const fecha = new Date(fechaString);
-    return fecha.toLocaleDateString('es-ES', {
+    // Crear fecha en zona horaria de Colombia para evitar desfase
+    const fecha = new Date(fechaString + 'T00:00:00-05:00');
+    return fecha.toLocaleDateString('es-CO', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -126,7 +134,8 @@ const ListadoAhorros = () => {
   };
 
   const formatearCantidad = (cantidad) => {
-    return new Intl.NumberFormat('es-ES', {
+    // Formatear con separadores correctos para Colombia
+    return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,

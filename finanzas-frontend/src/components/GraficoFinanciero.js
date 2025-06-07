@@ -83,15 +83,31 @@ const GraficoFinanciero = ({ mesActual, anioActual }) => {
         }
     };
 
+    // Función para formatear valores a notación k
+    const formatearValor = (valor) => {
+        if (valor >= 1000000) {
+            return `${(valor / 1000000).toFixed(1)}M`;
+        } else if (valor >= 1000) {
+            return `${Math.round(valor / 1000)}k`;
+        } else {
+            return valor.toString();
+        }
+    };
+
+    // Función personalizada para el eje Y
+    const formatYAxis = (tickItem) => {
+        return formatearValor(tickItem);
+    };
+
     // Formato personalizado para el tooltip
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             return (
                 <div className="custom-tooltip bg-white p-3 border shadow-sm rounded">
                     <p className="mb-2 font-weight-bold">{`${label}`}</p>
-                    <p className="text-success mb-1">{`Ingresos: $${payload[0].value.toFixed(2)}`}</p>
-                    <p className="text-danger mb-1">{`Gastos: $${payload[1].value.toFixed(2)}`}</p>
-                    <p className="text-primary">{`Balance: $${(payload[0].value - payload[1].value).toFixed(2)}`}</p>
+                    <p className="text-success mb-1">{`Ingresos: $${formatearValor(payload[0].value)}`}</p>
+                    <p className="text-danger mb-1">{`Gastos: $${formatearValor(payload[1].value)}`}</p>
+                    <p className="text-primary">{`Balance: $${formatearValor(payload[0].value - payload[1].value)}`}</p>
                 </div>
             );
         }
@@ -107,20 +123,51 @@ const GraficoFinanciero = ({ mesActual, anioActual }) => {
                     {error && <div className="alert alert-danger">{error}</div>}
                     
                     {datosMensuales.length > 0 && (
-                        <div style={{ width: '100%', height: 350 }}>
+                        <div style={{ width: '100%', height: 400 }}>
                             <ResponsiveContainer>
                                 <BarChart
                                     data={datosMensuales}
-                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                    margin={{ top: 0, right: 0, left: 0, bottom: 20 }}
+                                    barCategoryGap="20%"
                                 >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="mes" />
-                                    <YAxis />
+                                    <CartesianGrid 
+                                        strokeDasharray="2 2" 
+                                        stroke="#e0e0e0"
+                                        horizontal={true}
+                                        vertical={false}
+                                    />
+                                    <XAxis 
+                                        dataKey="mes" 
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 14, fill: '#666' }}
+                                    />
+                                    <YAxis 
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 12, fill: '#666' }}
+                                        tickFormatter={formatYAxis}
+                                        domain={[0, 'dataMax + 50000']}
+                                    />
                                     <Tooltip content={<CustomTooltip />} />
-                                    <Legend />
-                                    <Bar dataKey="ingresos" name="Ingresos" fill="#20c997" />
-                                    <Bar dataKey="gastos" name="Gastos" fill="#ff5858" />
-                                    <YAxis domain={[0, 'dataMax']} />
+                                    <Legend 
+                                        wrapperStyle={{ paddingTop: '20px' }}
+                                        iconType="rect"
+                                    />
+                                    <Bar 
+                                        dataKey="ingresos" 
+                                        name="Ingresos" 
+                                        fill="#20c997"
+                                        radius={[4, 4, 0, 0]}
+                                        maxBarSize={60}
+                                    />
+                                    <Bar 
+                                        dataKey="gastos" 
+                                        name="Gastos" 
+                                        fill="#dc3545"
+                                        radius={[4, 4, 0, 0]}
+                                        maxBarSize={60}
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

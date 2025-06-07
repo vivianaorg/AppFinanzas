@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 import "./FinancialDashboard.css";
 import GraficoFinanciero from "../GraficoFinanciero"; // Importamos el componente de gráfico
 
-const FinancialDashboard = ({ 
-  user, 
-  resumen, 
+const FinancialDashboard = ({
+  user,
+  resumen,
   ultimosMovimientos,
-  formatearFecha
+  formatearFecha,
+  formatearCantidad
 }) => {
   const fechaActual = new Date();
-  const mesActual = fechaActual.getMonth() + 1; 
+  const mesActual = fechaActual.getMonth() + 1;
   const anioActual = fechaActual.getFullYear();
 
   return (
@@ -38,10 +39,11 @@ const FinancialDashboard = ({
                   </div>
                   <div className="summary-text">
                     <div className="summary-label">Ingresos</div>
-                    <div className="summary-value">$ {resumen?.total_ingresos?.toFixed(2) || "500000.00"}</div>
-                  </div>
+                    <div className="summary-value">
+                      {formatearCantidad ? formatearCantidad(resumen?.total_ingresos || 500000) : `$ ${resumen?.total_ingresos?.toFixed(2) || "500000.00"}`}
+                    </div>                  </div>
                 </div>
-                
+
                 <div className="summary-item">
                   <div className="icon-container expense-icon">
                     <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,17 +52,18 @@ const FinancialDashboard = ({
                   </div>
                   <div className="summary-text">
                     <div className="summary-label">Gastos</div>
-                    <div className="summary-value">$ {resumen?.total_gastos?.toFixed(2) || "400000.00"}</div>
-                  </div>
+                    <div className="summary-value">
+                      {formatearCantidad ? formatearCantidad(resumen?.total_gastos || 400000) : `$ ${resumen?.total_gastos?.toFixed(2) || "400000.00"}`}
+                    </div>                  </div>
                 </div>
               </div>
             </div>
 
             {/* Gráfico Financiero debajo de la tarjeta de ingresos/gastos */}
             <div className="graph-container">
-              <GraficoFinanciero 
-                mesActual={mesActual} 
-                anioActual={anioActual} 
+              <GraficoFinanciero
+                mesActual={mesActual}
+                anioActual={anioActual}
               />
             </div>
           </div>
@@ -69,7 +72,7 @@ const FinancialDashboard = ({
           <div className="right-column">
             <div className="transactions-card">
               <h2 className="card-title transactions-title">Últimas transacciones</h2>
-              
+
               <div className="transactions-container">
                 <table className="transactions-table">
                   <thead>
@@ -90,7 +93,7 @@ const FinancialDashboard = ({
                             {movimiento.categoria_nombre || movimiento.categoria?.nombre || ""}
                           </td>
                           <td className={`amount-column ${movimiento.tipo === 'ingreso' ? 'income-text' : 'expense-text'}`}>
-                            ${parseFloat(movimiento.cantidad).toFixed(2)}
+                            {formatearCantidad ? formatearCantidad(parseFloat(movimiento.cantidad)) : `$${parseFloat(movimiento.cantidad).toFixed(2)}`}
                           </td>
                         </tr>
                       ))

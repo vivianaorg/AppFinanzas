@@ -10,17 +10,18 @@ const ListadoGastosjs = () => {
     const [totalGastos, setTotalGastos] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    //editar
+    
+    // Estados para edición
     const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
     const [mostrarModal, setMostrarModal] = useState(false);
     
     const [categorias, setCategorias] = useState([]);
     const [editando, setEditando] = useState(false);
-        const [formGasto, setFormIngreso] = useState({
-            id: null,
-            categoria_nombre: '',
-            cantidad: '',
-        });
+    const [formGasto, setFormGasto] = useState({
+        id: null,
+        categoria_nombre: '',
+        cantidad: '',
+    });
 
     useEffect(() => {
         setupAxiosInterceptors();
@@ -33,6 +34,7 @@ const ListadoGastosjs = () => {
             setError("No hay sesión activa. Por favor inicie sesión nuevamente.");
         }
     }, [mes, anio]); // Recargar cuando cambie el mes o año
+    
     useEffect(() => {
         obtenerCategorias();
     }, []);
@@ -106,7 +108,6 @@ const ListadoGastosjs = () => {
         }
     };
     
-
     const nombresMeses = [
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
@@ -130,28 +131,53 @@ const ListadoGastosjs = () => {
         }
     };
 
+    // Función mejorada para formatear cantidades en COP
     const formatearCantidad = (cantidad) => {
-        return new Intl.NumberFormat('es-ES', {
+        // Convertir a número si es string
+        const numeroLimpio = typeof cantidad === 'string' ? 
+            parseFloat(cantidad.replace(/[^\d.-]/g, '')) : 
+            parseFloat(cantidad);
+        
+        // Verificar que sea un número válido
+        if (isNaN(numeroLimpio)) return 'COP $0';
+        
+        return new Intl.NumberFormat('es-CO', {
             style: 'currency',
             currency: 'COP',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
-        }).format(cantidad);
+        }).format(numeroLimpio);
     };
 
+    // Función para formatear cantidad sin el símbolo de moneda (para inputs)
+    const formatearCantidadSinMoneda = (cantidad) => {
+        const numeroLimpio = typeof cantidad === 'string' ? 
+            parseFloat(cantidad.replace(/[^\d.-]/g, '')) : 
+            parseFloat(cantidad);
+        
+        if (isNaN(numeroLimpio)) return '0';
+        
+        return new Intl.NumberFormat('es-CO', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(numeroLimpio);
+    };
+
+    // Función corregida para formatear fechas
     const formatearFecha = (fechaString) => {
-        const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString('es-ES', {
+        // Crear fecha tratándola como hora local (Colombia) en lugar de UTC
+        // Esto evita problemas de zona horaria cuando USE_TZ = False en Django
+        const fecha = new Date(fechaString + 'T00:00:00');
+        return fecha.toLocaleDateString('es-CO', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
         });
     };
 
-
-    //editar
-    const abrirModal = (ingreso) => {
-        setGastoSeleccionado(ingreso);
+    // Funciones para edición
+    const abrirModal = (gasto) => {
+        setGastoSeleccionado(gasto);
         setMostrarModal(true);
         setEditando(false);
     };
@@ -161,7 +187,7 @@ const ListadoGastosjs = () => {
         setGastoSeleccionado(null);
         setEditando(false);
         // Resetear el formulario
-        setFormIngreso({
+        setFormGasto({
             id: null,
             categoria_id: '',
             categoria_nombre: '',
@@ -176,7 +202,7 @@ const ListadoGastosjs = () => {
                 cat => cat.nombre === gastoSeleccionado.categoria_nombre
             );
             
-            setFormIngreso({
+            setFormGasto({
                 id: gastoSeleccionado.id,
                 categoria_id: categoriaEncontrada ? categoriaEncontrada.id.toString() : '',
                 categoria_nombre: gastoSeleccionado.categoria_nombre,
@@ -196,7 +222,10 @@ const ListadoGastosjs = () => {
                 return;
             }
 
-            const cantidadNumerica = parseFloat(formGasto.cantidad);
+            // Limpiar la cantidad de formato y convertir a número
+            const cantidadLimpia = formGasto.cantidad.replace(/[^\d.-]/g, '');
+            const cantidadNumerica = parseFloat(cantidadLimpia);
+            
             if (isNaN(cantidadNumerica) || cantidadNumerica <= 0) {
                 alert("Por favor ingrese una cantidad válida");
                 return;
@@ -225,7 +254,7 @@ const ListadoGastosjs = () => {
             if (error.response?.data) {
                 console.error("Detalles del error:", error.response.data);
             }
-            alert("Hubo un error al actualizar el ingreso.");
+            alert("Hubo un error al actualizar el gasto.");
         }
     };
 
@@ -233,21 +262,39 @@ const ListadoGastosjs = () => {
         const categoriaId = e.target.value;
         const categoriaNombre = categorias.find(cat => cat.id.toString() === categoriaId)?.nombre || '';
 
-        setFormIngreso({
+        setFormGasto({
             ...formGasto,
             categoria_id: categoriaId,
             categoria_nombre: categoriaNombre
         });
     };
 
+    // Función mejorada para manejar el cambio de cantidad con formato
     const handleCantidadChange = (e) => {
-        const nuevaCantidad = e.target.value;
+        let valor = e.target.value;
         
-        setFormIngreso(prevForm => ({
+        // Remover todo excepto dígitos
+        valor = valor.replace(/[^\d]/g, '');
+        
+        // Si está vacío, mantener vacío
+        if (valor === '') {
+            setFormGasto(prevForm => ({
+                ...prevForm,
+                cantidad: ''
+            }));
+            return;
+        }
+        
+        // Convertir a número y formatear
+        const numero = parseInt(valor);
+        const valorFormateado = formatearCantidadSinMoneda(numero);
+        
+        setFormGasto(prevForm => ({
             ...prevForm,
-            cantidad: nuevaCantidad
+            cantidad: valorFormateado
         }));
     };
+
     return (
         <ListadoGastos
             mes={mes}
@@ -262,7 +309,7 @@ const ListadoGastosjs = () => {
             editando={editando}
             setEditando={setEditando}
             formGasto={formGasto}
-            setFormIngreso={setFormIngreso}
+            setFormGasto={setFormGasto}
 
             // handlers:
             handleMesAnterior={handleMesAnterior}
@@ -277,6 +324,7 @@ const ListadoGastosjs = () => {
             // utils:
             nombresMeses={nombresMeses}
             formatearCantidad={formatearCantidad}
+            formatearCantidadSinMoneda={formatearCantidadSinMoneda}
             formatearFecha={formatearFecha}
         />
     );

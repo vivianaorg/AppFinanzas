@@ -6,7 +6,6 @@ import FormularioAgregarTransaccionJSX from "./react/FormularioAgregarTransaccio
 
 const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
   const [usuario, setUsuario] = useState(null);
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const usuario_id = Number(localStorage.getItem("usuario_id"));
   const [tipoTransaccion, setTipoTransaccion] = useState("Gastos");
   const [categoria, setCategoria] = useState("");
@@ -17,6 +16,17 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
   const [mostrarAgregarCategoria, setMostrarAgregarCategoria] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // SOLUCIÓN: Usar fecha local sin conversión a UTC
+  const obtenerFechaLocal = () => {
+    const hoy = new Date();
+    const año = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0'); // getMonth() retorna 0-11
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${año}-${mes}-${dia}`;
+  };
+
+  const [fecha, setFecha] = useState(obtenerFechaLocal());
 
   useEffect(() => {
     cargarCategorias();
@@ -109,7 +119,8 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
         return;
       }
 
-      const importeNum = parseFloat(importe).toFixed(2);
+      const importeLimpio = importe.replace(/\./g, "").replace(",", ".");
+      const importeNum = parseFloat(importeLimpio).toFixed(2); // CORREGIDO: usar importeLimpio
       if (isNaN(importeNum) || importeNum <= 0) {
         setError("Por favor ingrese un importe válido");
         setLoading(false);
@@ -128,7 +139,7 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
         categoria_id: parseInt(categoria),
         importe: importeNum,
         comentarios: comentarios || null,
-        fecha: fecha,
+        fecha: fecha, // La fecha ya está en formato correcto YYYY-MM-DD local
         usuario: usuario_id,
       };
 
@@ -145,6 +156,12 @@ const FormularioAgregarTransaccion = ({ onClose, onSave }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatearCOP = (valor) => {
+    const numero = valor.replace(/\D/g, "");
+    if (!numero) return "";
+    return new Intl.NumberFormat("es-CO").format(numero);
   };
 
   return (

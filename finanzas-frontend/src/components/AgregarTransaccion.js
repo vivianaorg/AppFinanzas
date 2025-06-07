@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import FormularioAgregarTransaccion from './FormularioAgregarTransaccion';
 
 const PaginaAgregarTransaccion = () => {
-  const [transaccionGuardada, setTransaccionGuardada] = useState(null);
+  //const [transaccionGuardada, setTransaccionGuardada] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(true);
 
   const handleSave = (transaccion) => {
-    setTransaccionGuardada(transaccion);
-    setMostrarFormulario(false);
-    // Puedes redirigir al usuario o mostrar un mensaje de éxito
+    window.location.href = "/movimientos-mensuales";
   };
 
   const handleClose = () => {
@@ -26,7 +24,7 @@ const PaginaAgregarTransaccion = () => {
         />
       ) : (
         <div className="bg-green-100 text-green-800 p-4 rounded-md">
-          <p>¡Transacción guardada correctamente!</p>
+          <alert>¡Transacción guardada correctamente!</alert>
           <button 
             className="bg-green-600 text-white py-2 px-4 rounded-md mt-2"
             onClick={() => setMostrarFormulario(true)}

@@ -23,6 +23,7 @@ const MovimientosMensualesView = ({
   setAnio,
   obtenerMovimientosMensuales,
   formatearFecha,
+  formatearCantidadCOP, // Nueva prop añadida
   getRowClass,
   getBadgeInfo
 }) => {
@@ -58,9 +59,7 @@ const MovimientosMensualesView = ({
       <div className="principal">
       <div className="card">
         <div className="card-body">
-          <h3 className="card-title">
-            {nombresMeses[mes - 1]} {anio}
-          </h3>
+          
 
           {loading ? (
             <p>Cargando movimientos...</p>
@@ -72,7 +71,7 @@ const MovimientosMensualesView = ({
                     <TableCell>Fecha</TableCell>
                     <TableCell>Categoría</TableCell>
                     <TableCell align="right">Cantidad</TableCell>
-                    <TableCell>Tipo</TableCell>
+                    <TableCell >Tipo</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -85,7 +84,13 @@ const MovimientosMensualesView = ({
                       >
                         <TableCell>{formatearFecha(movimiento.fecha)}</TableCell>
                         <TableCell>{movimiento.categoria_nombre || 'Sin categoría'}</TableCell>
-                        <TableCell align="right">${parseFloat(movimiento.cantidad).toFixed(2)}</TableCell>
+                        <TableCell align="right">
+                          {/* CAMBIO AQUÍ: Usar la función de formateo COP */}
+                          {formatearCantidadCOP ? 
+                            formatearCantidadCOP(movimiento.cantidad || movimiento.importe) : 
+                            `$${parseFloat(movimiento.cantidad || movimiento.importe || 0).toFixed(2)}`
+                          }
+                        </TableCell>
                         <TableCell>
                           <span className={`badge ${badgeInfo.class}`}>
                             {badgeInfo.text}
