@@ -1,1 +1,1 @@
-web: gunicorn finanzas.wsgi
+web: gunicorn finanzas.wsgi:application --chdir finanzas
